@@ -37,46 +37,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var amqp = require("amqplib/callback_api");
+var socketIoClient = require("socket.io-client");
+var RABBITMQ_HOST = "amqp://52.6.228.180/";
+var RABBITMQ_QUEUE_RTDATA = "rtdata";
+var RABBITMQ_QUEUE_AVERAGES = "averages";
+var WEBSOCKET_SERVER_URL = "http://localhost:4000";
+var socketIO;
 function connect() {
     return __awaiter(this, void 0, void 0, function () {
-        var _this = this;
         return __generator(this, function (_a) {
             try {
-                amqp.connect("amqp://52.6.228.180/", function (err, conn) {
+                amqp.connect(RABBITMQ_HOST, function (err, conn) {
                     if (err)
                         throw new Error(err);
                     conn.createChannel(function (errChanel, channel) {
                         if (errChanel)
                             throw new Error(errChanel);
-                        channel.assertQueue();
-                        channel.consume("rtdata", function (data) { return __awaiter(_this, void 0, void 0, function () {
-                            var content, parsedContent, headers, body;
-                            return __generator(this, function (_a) {
-                                if ((data === null || data === void 0 ? void 0 : data.content) !== undefined) {
-                                    console.log(data.content);
-                                    content = data === null || data === void 0 ? void 0 : data.content;
-                                    parsedContent = JSON.parse(content.toString());
-                                    headers = {
-                                        "Content-Type": "application/json",
-                                    };
-                                    body = {
-                                        method: "POST",
-                                        headers: headers,
-                                        body: JSON.stringify(parsedContent),
-                                    };
-                                    console.log(parsedContent);
-                                    fetch("http://localhost:3001/data/rtdata", body)
-                                        .then(function () {
-                                        console.log("datos enviados");
-                                    })
-                                        .catch(function (err) {
-                                        throw new Error(err);
-                                    });
-                                    channel.ack(data);
-                                }
-                                return [2 /*return*/];
-                            });
-                        }); });
+                        channel.assertQueue(RABBITMQ_QUEUE_RTDATA);
+                        channel.assertQueue(RABBITMQ_QUEUE_AVERAGES);
+                        channel.consume(RABBITMQ_QUEUE_RTDATA, function (data) {
+                            if ((data === null || data === void 0 ? void 0 : data.content) !== undefined) {
+                                var parsedContent = JSON.parse(data.content.toString());
+                                console.log("Datos de rtdata:", parsedContent);
+                                socketIO.emit("rtdata", parsedContent);
+                                channel.ack(data);
+                            }
+                        });
+                        channel.consume(RABBITMQ_QUEUE_AVERAGES, function (data) {
+                            if ((data === null || data === void 0 ? void 0 : data.content) !== undefined) {
+                                var parsedContent = JSON.parse(data.content.toString());
+                                console.log("Datos de averages:", parsedContent);
+                                socketIO.emit("averages", parsedContent);
+                                channel.ack(data);
+                            }
+                        });
+                        socketIO = socketIoClient(WEBSOCKET_SERVER_URL);
                     });
                 });
             }
