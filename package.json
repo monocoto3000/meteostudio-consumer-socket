@@ -1,0 +1,16 @@
+{
+  "type": "commonjs",
+  "dependencies": {
+    "amqp": "^0.2.7",
+    "amqp-ts": "^1.8.0",
+    "axios": "^1.6.7",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.5",
+    "amqplib": "^0.10.0"
+  }
+}
