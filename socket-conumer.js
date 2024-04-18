@@ -38,36 +38,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var amqp = require("amqplib/callback_api");
 var socketIoClient = require("socket.io-client");
-var RABBITMQ_HOST = "amqp://52.6.228.180/";
-var RABBITMQ_QUEUE_RTDATA = "rtdata";
-var RABBITMQ_QUEUE_AVERAGES = "averages";
+var USERNAME = "meteostudio";
+var PASSWORD = encodeURIComponent("CMdui89!gdDDD145x?");
+var HOSTNAME = "100.25.187.231";
+var PORT = 5672;
+var RABBITMQ_QUEUE_RTDATA = "Meteorological";
 var WEBSOCKET_SERVER_URL = "http://localhost:4000";
 var socketIO;
 function connect() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             try {
-                amqp.connect(RABBITMQ_HOST, function (err, conn) {
+                amqp.connect("amqp://".concat(USERNAME, ":").concat(PASSWORD, "@").concat(HOSTNAME, ":").concat(PORT), function (err, conn) {
                     if (err)
                         throw new Error(err);
                     conn.createChannel(function (errChanel, channel) {
                         if (errChanel)
                             throw new Error(errChanel);
-                        channel.assertQueue(RABBITMQ_QUEUE_RTDATA);
-                        channel.assertQueue(RABBITMQ_QUEUE_AVERAGES);
+                        channel.assertQueue(RABBITMQ_QUEUE_RTDATA, { durable: true, arguments: { "x-queue-type": "quorum" } });
                         channel.consume(RABBITMQ_QUEUE_RTDATA, function (data) {
                             if ((data === null || data === void 0 ? void 0 : data.content) !== undefined) {
                                 var parsedContent = JSON.parse(data.content.toString());
                                 console.log("Datos de rtdata:", parsedContent);
                                 socketIO.emit("rtdata", parsedContent);
-                                channel.ack(data);
-                            }
-                        });
-                        channel.consume(RABBITMQ_QUEUE_AVERAGES, function (data) {
-                            if ((data === null || data === void 0 ? void 0 : data.content) !== undefined) {
-                                var parsedContent = JSON.parse(data.content.toString());
-                                console.log("Datos de averages:", parsedContent);
-                                socketIO.emit("averages", parsedContent);
                                 channel.ack(data);
                             }
                         });
